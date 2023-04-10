@@ -185,16 +185,19 @@ static float cast_ray(float angle, Point& hit) {
         hit = hith;
         did_hit = true;
         dist = distance(hith, p);
+        glColor3f(0.9,0,0);
     }
     if(cast_line_vertical(angle, hitv)){
         float v_dist = distance(hitv, p);
         if(did_hit) {
             if(v_dist < dist) {
+                glColor3f(0.7,0,0);
                 hit = hitv;
                 dist = v_dist;
                 return dist;
             }
         } else {
+            glColor3f(0.7,0,0);
             hit = hitv;
             dist = v_dist;
             return dist;
@@ -234,7 +237,6 @@ static void drawWalls() {
             line_height = HEIGHT;
         }
         float line_offset = (HEIGHT - line_height) / 2;
-        glColor3f(1,0,0);
         glLineWidth(8);
         glBegin(GL_LINES);
         glVertex2i(r*8+530,line_offset);
