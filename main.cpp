@@ -4,8 +4,8 @@
 #include <GL/glut.h>
 #include <cmath>
 
-constexpr int WIDTH = 1024;
-constexpr int HEIGHT = 512;
+int window_width = 1024;
+int window_height = 512;
 constexpr float PI2 = 2*M_PI;
 
 struct Player {
@@ -232,15 +232,15 @@ static void drawWalls() {
         dist *= cosf(diff_angle);
 
 
-        float line_height = (MAP_WIDTH * MAP_HEIGHT * HEIGHT) / dist;
-        if(line_height > HEIGHT) {
-            line_height = HEIGHT;
+        float line_height = (MAP_WIDTH * MAP_HEIGHT * MAP_HEIGHT * CELL_SIZE) / dist;
+        if(line_height > window_height) {
+            line_height = window_height;
         }
-        float line_offset = (HEIGHT - line_height) / 2;
+        float line_offset = (MAP_HEIGHT * CELL_SIZE) / 2.0;
         glLineWidth(8);
         glBegin(GL_LINES);
-        glVertex2i(r*8+530,line_offset);
-        glVertex2i(r*8+530,line_height + line_offset);
+        glVertex2i(r*8 + MAP_WIDTH * CELL_SIZE + 10, line_offset - line_height);
+        glVertex2i(r*8 + MAP_WIDTH * CELL_SIZE + 10, line_offset + line_height);
         glEnd();
     }
 }
@@ -255,7 +255,7 @@ static void display() {
 
 static void init() {
     glClearColor(0.3,0.3,0.3,0);
-    gluOrtho2D(0,WIDTH,HEIGHT,0);
+    gluOrtho2D(0,window_width,window_height,0);
 }
 
 static void handleButtonPress(unsigned char key, int x, int y) {
@@ -266,13 +266,20 @@ static void handleButtonPress(unsigned char key, int x, int y) {
     glutPostRedisplay();
 }
 
+static void resize(int w, int h) {
+    window_width = w;
+    window_height = h;
+    glutPostRedisplay();
+}
+
 int main(int argc, char** argv) {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
-    glutInitWindowSize(WIDTH, HEIGHT);
+    glutInitWindowSize(window_width, window_height);
     glutCreateWindow("");
     init();
     glutDisplayFunc(display);
+    glutReshapeFunc(resize);
     glutKeyboardFunc(handleButtonPress);
     glutMainLoop();
 }
