@@ -8,6 +8,15 @@ int window_width = 1024;
 int window_height = 512;
 constexpr float PI2 = 2 * M_PI;
 
+constexpr int MAP_WIDTH = 8;
+constexpr int MAP_HEIGHT = 8;
+constexpr int CELL_SIZE = 64;
+constexpr unsigned char map[MAP_WIDTH][MAP_HEIGHT] = {
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0,
+    0, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0,
+    0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+};
+
 struct Player {
     float x;
     float y;
@@ -59,12 +68,24 @@ struct Player {
         updateDirection();
     }
     void moveForward() {
-        x += dx;
-        y += dy;
+        int map_x = int(x / CELL_SIZE);
+        int map_y = int(y / CELL_SIZE);
+        if(map[int((x+dx)/CELL_SIZE)][map_y] == 0) {
+            x += dx;
+        }
+        if(map[map_x][int((y + dy) / CELL_SIZE)] == 0) {
+            y += dy;
+        }
     }
     void moveBackward() {
-        x -= dx;
-        y -= dy;
+        int map_x = int(x / CELL_SIZE);
+        int map_y = int(y / CELL_SIZE);
+        if(map[int((x-dx)/CELL_SIZE)][map_y] == 0) {
+            x -= dx;
+        }
+        if(map[map_x][int((y - dy) / CELL_SIZE)] == 0) {
+            y -= dy;
+        }
     }
 
 private:
@@ -75,14 +96,6 @@ private:
 };
 Player player{300, 300, 0, 5, 0, false, false, false, false};
 
-constexpr int MAP_WIDTH = 8;
-constexpr int MAP_HEIGHT = 8;
-constexpr int CELL_SIZE = 64;
-constexpr unsigned char map[MAP_WIDTH][MAP_HEIGHT] = {
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0,
-    0, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0,
-    0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-};
 
 static void drawMap2D() {
     for (int y = 0; y < MAP_HEIGHT; ++y) {
