@@ -1,6 +1,7 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GL/glut.h>
+#include <algorithm>
 #include <cmath>
 #include <cstdio>
 
@@ -95,7 +96,6 @@ private:
     }
 };
 Player player{300, 300, 0, 5, 0, false, false, false, false};
-
 
 static void drawMap2D() {
     for (int y = 0; y < MAP_HEIGHT; ++y) {
@@ -229,42 +229,35 @@ static float cast_ray(float angle, Point &hit) {
     return dist;
 }
 
-static inline constexpr float limit_angle(float angle) {
-    if (angle < 0) {
-        angle += PI2;
-    }
-    if (angle > PI2) {
-        angle -= PI2;
-    }
-    return angle;
+static inline constexpr float limitAngle(float angle) {
+    return std::fmod(angle, PI2);
 }
 
 constexpr int NUM_RAYS = 60;
 constexpr float FIELD_OF_VIEW = 0.3; // Radians
 constexpr float DELTA_ANGLE = FIELD_OF_VIEW * 2 / NUM_RAYS;
+constexpr int LINE_WIDTH = 8;
+constexpr int PADDING = 10;
 static void drawWalls() {
-    Point hit{0, 0};
     float ray_angle = player.angle - FIELD_OF_VIEW;
     for (int r = 0; r < NUM_RAYS; ++r) {
-        ray_angle = limit_angle(ray_angle + DELTA_ANGLE);
+        ray_angle = limitAngle(ray_angle + DELTA_ANGLE);
         Point hit{0, 0};
         float dist = cast_ray(ray_angle, hit);
 
         // Fix fisheye
-        float diff_angle = limit_angle(ray_angle - player.angle);
+        float diff_angle = limitAngle(ray_angle - player.angle);
         dist *= cosf(diff_angle);
 
         float line_height =
-            (MAP_WIDTH * MAP_HEIGHT * MAP_HEIGHT * CELL_SIZE) / dist;
-        if (line_height > window_height) {
-            line_height = window_height;
-        }
+            std::clamp((MAP_WIDTH * MAP_HEIGHT * MAP_HEIGHT * CELL_SIZE) / dist,
+                       0.0f, static_cast<float>(window_height));
         float line_offset = (MAP_HEIGHT * CELL_SIZE) / 2.0;
-        glLineWidth(8);
+        glLineWidth(LINE_WIDTH);
         glBegin(GL_LINES);
-        glVertex2i(r * 8 + MAP_WIDTH * CELL_SIZE + 10,
+        glVertex2i(r * LINE_WIDTH + MAP_WIDTH * CELL_SIZE + PADDING,
                    line_offset - line_height);
-        glVertex2i(r * 8 + MAP_WIDTH * CELL_SIZE + 10,
+        glVertex2i(r * LINE_WIDTH + MAP_WIDTH * CELL_SIZE + PADDING,
                    line_offset + line_height);
         glEnd();
     }
@@ -284,34 +277,18 @@ static void init() {
 }
 
 static void handleButtonPress(unsigned char key, int x, int y) {
-    if (key == 'd') {
-        player.turning_right = true;
-    }
-    if (key == 'a') {
-        player.turning_left = true;
-    }
-    if (key == 'w') {
-        player.moving_forward = true;
-    }
-    if (key == 's') {
-        player.moving_backward = true;
-    }
+    player.turning_right |= (key == 'd');
+    player.turning_left |= (key == 'a');
+    player.moving_forward |= (key == 'w');
+    player.moving_backward |= (key == 's');
     glutPostRedisplay();
 }
 
 static void handleButtonUp(unsigned char key, int x, int y) {
-    if (key == 'd') {
-        player.turning_right = false;
-    }
-    if (key == 'a') {
-        player.turning_left = false;
-    }
-    if (key == 'w') {
-        player.moving_forward = false;
-    }
-    if (key == 's') {
-        player.moving_backward = false;
-    }
+    player.turning_right &= (key != 'd');
+    player.turning_left &= (key != 'a');
+    player.moving_forward &= (key != 'w');
+    player.moving_backward &= (key != 's');
     glutPostRedisplay();
 }
 
